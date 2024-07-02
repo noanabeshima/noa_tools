@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "noa-tools"
-version = "0.1.0"
+name = "noa_tools"
+version = "0.1.0-1"
 description = ""
 authors = ["Noa Nabeshima <noanabeshima@gmail.com>"]
 readme = "README.md"
@@ -13,6 +13,7 @@ pillow = "^10.4.0"
 scipy = "^1.14.0"
 einops = "^0.8.0"
 matplotlib = "^3.9.0"
+openai = "^1.35.9"
 
 
 [build-system]
