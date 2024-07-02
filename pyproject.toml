@@ -6,7 +6,7 @@ authors = ["Noa Nabeshima <noanabeshima@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.9"
 tsp-solver = "^0.1"
 boto3 = "^1.34.138"
 pillow = "^10.4.0"
