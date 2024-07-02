@@ -11,6 +11,7 @@ def upload_file(
     public=False,
     access_key=None,
     secret_access_key=None,
+    content_type="text/html"
 ):
     """Upload a file to an S3 bucket
 
@@ -42,7 +43,7 @@ def upload_file(
                 ExtraArgs={
                     "ACL": "public-read",
                     "ContentDisposition": "inline",
-                    "ContentType": "text/html",
+                    "ContentType": content_type,
                 },
             )
         else:

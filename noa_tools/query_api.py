@@ -1,6 +1,5 @@
 from threading import Thread
 from queue import Queue
-import time
 import openai
 import os
 
