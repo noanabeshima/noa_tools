@@ -2,6 +2,7 @@ import torch
 import sys
 import traceback
 from typing import Union, List
+import numpy as np
 
 
 def get_scheduler(optimizer, n_steps, end_lr_factor=0.1, n_warmup_steps=None):
