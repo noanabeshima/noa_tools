@@ -5,6 +5,26 @@ from typing import Union, List
 import numpy as np
 
 
+from copy import deepcopy
+
+
+def grid_from_configs(*configs, shared=None):
+    res = []
+    for config in configs:
+        if isinstance(shared, list):
+            for s in shared:
+                assert isinstance(s, dict)
+                config.update(deepcopy(s))
+        elif isinstance(shared, dict):
+            config.update(deepcopy(shared))
+        else:
+            assert shared is None
+        res += grid_from_config(config)
+    return res
+
+grid_from_config = grid_from_configs
+
+
 def get_scheduler(optimizer, n_steps, end_lr_factor=0.1, n_warmup_steps=None):
     if n_warmup_steps is None:
         n_warmup_steps = 0.05 * n_steps
