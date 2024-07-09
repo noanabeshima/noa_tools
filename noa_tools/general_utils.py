@@ -167,7 +167,8 @@ def see(t):
         else:
             avg = t.mean()
             std = t.std()
-            print(f": {str(tuple(t.shape))} | avg={avg:.2G} std={std:.2G} | {t.dtype}")
+            absmax = signed_absmax(torch.tensor(t)).item()
+            print(f": {str(tuple(t.shape))} | avg={avg:.2G} std={std:.2G} absmax={absmax:.2G}| {t.dtype}")
     elif (isinstance(t, list) or isinstance(t, tuple)) or isinstance(t, dict):
         print(": " + get_str_for_nested_tensor(t))
     else:
