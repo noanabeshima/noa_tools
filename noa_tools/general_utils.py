@@ -133,7 +133,18 @@ def argmax(t):
 def signed_absmax(t):
     argabsmax = argmax(t.abs())
     return t[*argabsmax]
-    
+
+def get_std(x):
+    if isinstance(x, torch.Tensor):
+        if torch.all(x == 0):
+            return 0.0
+        else:
+            return torch.sqrt(torch.var(x) + 1e-8)
+    if isinstance(x, np.npdarray):
+        if np.all(x == 0):
+            return 0.0
+        else:
+            return np.sqrt(np.var(x) + 1e-8)
     
 
 def see(t):
@@ -153,7 +164,7 @@ def see(t):
             )
         else:
             avg = t.mean().item()
-            std = t.std().item()
+            std = get_std(t)
             absmax = signed_absmax(t).item()
             print(
                 f": {str(tuple(t.shape))} | avg={avg:.2G} std={std:.2G} absmax={absmax:.2G} | {t.device}, {t.dtype}"
@@ -166,7 +177,7 @@ def see(t):
             print(f": {str(tuple(t.shape))} | mode: {mode} | {t.dtype}")
         else:
             avg = t.mean()
-            std = t.std()
+            std = get_std(t)
             absmax = signed_absmax(torch.tensor(t)).item()
             print(f": {str(tuple(t.shape))} | avg={avg:.2G} std={std:.2G} absmax={absmax:.2G}| {t.dtype}")
     elif (isinstance(t, list) or isinstance(t, tuple)) or isinstance(t, dict):
