@@ -126,7 +126,7 @@ def get_str_for_nested_tensor(t):
         return str(t)
     
 def argmax(t):
-    assert isinstance(t, torch.tensor)
+    assert isinstance(t, torch.Tensor)
     argmax = (int(idx) for idx in torch.unravel_index(torch.argmax(t), t.shape))
     return argmax
 
