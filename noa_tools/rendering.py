@@ -22,9 +22,7 @@ def tensor_to_numpy(x):
             x = x.cpu()
         if x.dtype == torch.bool:
             x = x.int()
-        if x.dtype == torch.float16:
-            x = x.float()
-        if x.dtype == torch.float64:
+        if x.dtype in {torch.float16, torch.bfloat16, torch.float64}:
             x = x.float()
         x = x.detach().cpu().numpy()
     if isinstance(x, torch.nn.parameter.Parameter):
