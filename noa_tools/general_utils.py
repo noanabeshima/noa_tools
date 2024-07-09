@@ -136,12 +136,16 @@ def signed_absmax(t):
 
 def get_std(x):
     if isinstance(x, torch.Tensor):
-        if torch.all(x == 0):
+        if x.numel() == 0 or x.numel() == 1:
+            return 0.0
+        elif torch.all(x == 0):
             return 0.0
         else:
             return x.std().item()
     if isinstance(x, np.npdarray):
-        if np.all(x == 0):
+        if x.size == 0 or x.size == 1:
+            return 0.0
+        elif np.all(x == 0):
             return 0.0
         else:
             return np.std(x)
