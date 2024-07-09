@@ -124,7 +124,17 @@ def get_str_for_nested_tensor(t):
         return dict_str
     else:
         return str(t)
+    
+def argmax(t):
+    assert isinstance(t, torch.tensor)
+    argmax = (int(idx) for idx in torch.unravel_index(torch.argmax(t), t.shape))
+    return argmax
 
+def signed_absmax(t):
+    argabsmax = argmax(t.abs())
+    return t[*argabsmax]
+    
+    
 
 def see(t):
     # renders array shape and name of argument
@@ -136,16 +146,15 @@ def see(t):
         if t.dtype == torch.bool:
             t = t.half()
         if t.dtype == torch.long or t.dtype == torch.int:
-            abs_t = t.abs()
-            absmax = abs_t.max()
-            absmin = abs_t.min()
+            max = t.max().item()
+            min = t.min().item()
             print(
-                f": {str(tuple(t.shape))} | absmax: {absmax} | absmin: {absmin} | {t.device}, {t.dtype}"
+                f": {str(tuple(t.shape))} | max: {max} | min: {min} | {t.device}, {t.dtype}"
             )
         else:
             avg = t.mean().item()
             std = t.std().item()
-            absmax = t.abs().max().item()
+            absmax = signed_absmax(t).item()
             print(
                 f": {str(tuple(t.shape))} | avg={avg:.2G} std={std:.2G} absmax={absmax:.2G} | {t.device}, {t.dtype}"
             )
