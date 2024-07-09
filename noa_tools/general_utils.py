@@ -5,8 +5,25 @@ from typing import Union, List
 import numpy as np
 
 
+import torch
+import numpy as np
 from copy import deepcopy
 
+def grid_from_config(config):
+    for k, v in config.items():
+        if isinstance(v, torch.Tensor) or isinstance(v, np.ndarray):
+            config[k] = v.tolist()
+
+    res= [{}]
+    for param, param_values in config.items():
+        new_res = []
+        for d in res:
+            for v in param_values:
+                copied_d = deepcopy(d)
+                copied_d[param] = v
+                new_res.append(copied_d)
+        res = new_res
+    return res
 
 def grid_from_configs(*configs, shared=None):
     res = []
@@ -14,15 +31,13 @@ def grid_from_configs(*configs, shared=None):
         if isinstance(shared, list):
             for s in shared:
                 assert isinstance(s, dict)
-                config.update(deepcopy(s))
+                config.update(s.copy())
         elif isinstance(shared, dict):
-            config.update(deepcopy(shared))
+            config.update(shared.copy())
         else:
             assert shared is None
         res += grid_from_config(config)
     return res
-
-grid_from_config = grid_from_configs
 
 
 def get_scheduler(optimizer, n_steps, end_lr_factor=0.1, n_warmup_steps=None):

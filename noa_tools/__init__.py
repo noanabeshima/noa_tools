@@ -4,7 +4,6 @@ from .rendering import (
     render_array_w_sign,
     get_image_grid,
     heatmap,
-    qq_plot,
     str_arr_add,
     tensor_to_numpy,
     plthist,

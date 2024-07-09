@@ -1,7 +1,9 @@
 from PIL import Image
 import torch
 import numpy as np
-from scipy import stats
+
+# there's something wrong with importing this.
+# from scipy import stats
 
 import math
 import einops
@@ -211,21 +213,22 @@ def heatmap(
     return fig
 
 
-def qq_plot(x, dist="norm", sparams=(), hovertext=None):
-    x = x.squeeze()
-    assert len(x.shape) == 1
-    perm = x.topk(x.shape[0], largest=False).indices
-    hovertext = np.array(hovertext)[perm] if hovertext is not None else None
-    qq = stats.probplot(x[perm], dist=dist, sparams=sparams)
-    x = np.array([qq[0][0][0], qq[0][0][-1]])
-    fig = go.Figure()
-    fig.add_scatter(x=qq[0][0], y=qq[0][1], mode="markers", hovertext=hovertext)
-    fig.update_xaxes(title="theoretical quantiles")
-    fig.update_yaxes(title="actual quantiles")
+# commented out as there's some issue with scipy.stats
+# def qq_plot(x, dist="norm", sparams=(), hovertext=None):
+#     x = x.squeeze()
+#     assert len(x.shape) == 1
+#     perm = x.topk(x.shape[0], largest=False).indices
+#     hovertext = np.array(hovertext)[perm] if hovertext is not None else None
+#     qq = stats.probplot(x[perm], dist=dist, sparams=sparams)
+#     x = np.array([qq[0][0][0], qq[0][0][-1]])
+#     fig = go.Figure()
+#     fig.add_scatter(x=qq[0][0], y=qq[0][1], mode="markers", hovertext=hovertext)
+#     fig.update_xaxes(title="theoretical quantiles")
+#     fig.update_yaxes(title="actual quantiles")
 
-    fig.add_scatter(x=x, y=qq[1][1] + qq[1][0] * x, mode="lines")
-    fig.layout.update(showlegend=False)
-    fig.show()
+#     fig.add_scatter(x=x, y=qq[1][1] + qq[1][0] * x, mode="lines")
+#     fig.layout.update(showlegend=False)
+#     fig.show()
 
 
 def get_image_grid(images, width: int = -1, scale: int = 1):
