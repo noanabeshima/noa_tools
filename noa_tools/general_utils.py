@@ -139,12 +139,12 @@ def get_std(x):
         if torch.all(x == 0):
             return 0.0
         else:
-            return torch.sqrt(torch.var(x) + 1e-8)
+            return x.std().item()
     if isinstance(x, np.npdarray):
         if np.all(x == 0):
             return 0.0
         else:
-            return np.sqrt(np.var(x) + 1e-8)
+            return np.std(x)
     
 
 def see(t):
