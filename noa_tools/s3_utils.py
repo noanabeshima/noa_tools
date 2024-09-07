@@ -55,13 +55,27 @@ def upload_file(
     return url
 
 
+# html_head = """<head>
+# 	<link rel="stylesheet"
+#           href="https://fonts.googleapis.com/css?family=Proxima_Nova">
+# 	<style>
+# 		body {
+# 			font-family: 'Proxima_Nova', sans-serif;
+# 		}
+# 		p {
+# 			font-size: 1.3rem;
+# 		}
+# 		h2 {
+# 			font-size: 1.6rem
+# 		}
+# 	</style>
+# </head>
+
+# """
+
+
 html_head = """<head>
-	<link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Proxima_Nova">
 	<style>
-		body {
-			font-family: 'Proxima_Nova', sans-serif;
-		}
 		p {
 			font-size: 1.3rem;
 		}

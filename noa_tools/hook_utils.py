@@ -34,12 +34,12 @@ def register_hook(
 ):
     if prepare_module_for_hook(module, hook_fn) is False:
         return
+    
 
     removable_handle = module.register_forward_hook(
         lambda module, input, output: hook_fn(module, input, output)
     )
     module.hooks[hook_fn.__name__] = removable_handle
-
     return removable_handle
 
 
