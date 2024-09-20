@@ -83,9 +83,10 @@ def str_arr_add(*args):
             args[i] = item.astype(str)
     res = args[0]
     for item in args[1:]:
-        res = np.core.defchararray.add(res, item)
+        res = np.char.add(res, item)
     return res
 
+float_arr_to_str = np.vectorize(lambda x: f'{x:.2g}')
 
 def heatmap(
     arr,
@@ -94,19 +95,31 @@ def heatmap(
     dim_names=("row", "col"),
     info_0=None,
     info_1=None,
-    include_idx=(True, True),
+    include_idx=(None, None),
     title=None,
     mask_0=None,
     mask_1=None,
     sort_0=None,
     sort_1=None,
+    ticks_0=None,
+    ticks_1=None,
+    indexed_keys=False,
+    width=None,
+    height=None
 ):
     """
     arr: 2d numpy or torch array to render
+    perm_0, perm_1: permutation arrays to reorder the rows/columns of the heatmap
     dim_names : (str, str), names of dim 0 and dim 1 respectively
     info_0, info_1 : dictionary of string keys to list of strings describing the indices of dim 0 and dim 1 respectively
-
+    include_idx: tuple of booleans, whether to include index in the hover info for each dimension
+    title: str or None, title of the heatmap
+    mask_0, mask_1: boolean arrays to mask out certain rows/columns of the heatmap
     sort_0, sort_1: 1d arrays of indices to sort the rows and columns of the heatmap by
+    ticks_0, ticks_1: custom tick labels for dim 0 and dim 1 respectively
+    indexed_keys: bool, if True, keys in info_0 and info_1 will be postfixed with their index
+    width: int or None, width of the resulting figure in pixels
+    height: int or None, height of the resulting figure in pixels
     """
 
     assert not (
@@ -120,6 +133,12 @@ def heatmap(
     arr = tensor_to_numpy(arr)
     assert isinstance(arr, np.ndarray)
 
+    # if include_idx[i] is None, it's set to True iff info_i is not provided
+    if include_idx[0] is None:
+        include_idx = (info_0 is None, include_idx[1])
+    if include_idx[1] is None:
+        include_idx = (include_idx[0], info_1 is None)
+    
     # Create default title if none is provided
     if title is None:
         if dim_names == ("row", "col"):
@@ -140,12 +159,12 @@ def heatmap(
     perm_1 = np.arange(arr.shape[1]) if perm_1 is None else tensor_to_numpy(perm_1)
 
     def construct_dim_info(
-        dim_info: dict, dim_name: str, dim_len, perm, mask=None, include_idx=False
+        dim_info: dict, dim_len, perm, mask, indexed_keys
     ):
-        dim_info = {} if dim_info is None else dim_info
+        result = np.array(['' for _ in range(dim_len)])
+        index = np.arange(dim_len).astype('U2')
 
-        if include_idx is True:
-            dim_info[f"{dim_name}"] = np.arange(dim_len)
+        dim_info = {} if dim_info is None else dim_info
 
         for k, v in dim_info.items():
             if is_tensor(v):
@@ -155,38 +174,66 @@ def heatmap(
                     dim_info[k] = np.array(v)
 
         dim_info = {k: v[perm] for k, v in dim_info.items()}
+        result = result[perm]
+        index = index[perm]
 
         if mask is not None:
-            mask = tensor_to_numpy(mask)[perm]
+            mask = tensor_to_numpy(mask)
             for k, v in dim_info.items():
-                dim_info[k] = v[mask]
+                dim_info[k] = v[mask[perm]]
+            result = result[mask[perm]]
+            index = index[mask[perm]]
+        
 
-        dim_info = str_arr_add(
-            *[str_arr_add(k + ": ", v, "<br>") for k, v in dim_info.items()]
-        )
-        dim_info = np.array(dim_info).astype(str).tolist()
-        return dim_info
+        if indexed_keys:
+            result = str_arr_add(
+                result,
+                *[str_arr_add(k, ' ', index, ": ", v, "<br>") for k, v in dim_info.items()]
+            )
+        else:
+            result = str_arr_add(
+                result,
+                *[str_arr_add(k, ": ", v, "<br>") for k, v in dim_info.items()]
+            )
+        return result
 
-    # Construct hovertemplate and dim info for each dimension (0 and 1)
-    hovertemplate = ""
-    if info_0 is not None or include_idx[0]:
-        hovertemplate += "%{y}"
-        info_0 = construct_dim_info(
-            info_0, dim_names[0], arr.shape[0], perm_0, mask_0, include_idx[0]
-        )
-    if info_1 is not None or include_idx[1]:
-        hovertemplate += "%{x}"
-        info_1 = construct_dim_info(
-            info_1, dim_names[1], arr.shape[1], perm_1, mask_1, include_idx[1]
-        )
-    hovertemplate += "val: %{z:.2f}<extra></extra>"
+    # Construct dim info for each dimension (0 and 1)
+    info_0 = construct_dim_info(
+        info_0, arr.shape[0], perm_0, mask_0, indexed_keys
+    )
+    info_1 = construct_dim_info(
+        info_1, arr.shape[1], perm_1, mask_1, indexed_keys
+    )
+    
+    # construct hovertext
+    hovertext = np.char.add(np.array(info_0)[:,None], np.array(info_1))
 
+    if include_idx[0]:
+        index_0 = construct_dim_info(
+            {dim_names[0]: np.arange(arr.shape[0])},
+            dim_len=arr.shape[0],
+            perm=perm_0,
+            mask=mask_1
+        )
+        hovertext = np.char.add(hovertext, index_0[:,None])
+    if include_idx[1]:
+        index_1 = construct_dim_info(
+            {dim_names[1]: np.arange(arr.shape[1])},
+            dim_len=arr.shape[1],
+            perm=perm_1,
+            mask=mask_0
+        )
+        hovertext = np.char.add(hovertext, index_1[None])
+    
     # apply masks and permutations
     arr = arr[perm_0][:, perm_1]
     if mask_0 is not None:
         arr = arr[mask_0[perm_0]]
     if mask_1 is not None:
         arr = arr[:, mask_1[perm_1]]
+    
+    # finally add the array values to the hovertext
+    hovertext = str_arr_add(hovertext, 'val: ', float_arr_to_str(arr), '<br>')
 
     # Create the plotly.graph_objects figure
     layout = go.Layout(yaxis=dict(autorange="reversed"))
@@ -194,9 +241,8 @@ def heatmap(
     fig = go.Figure(
         data=go.Heatmap(
             z=arr,
-            y=info_0,
-            x=info_1,
-            hovertemplate=hovertemplate,
+            hoverinfo='text',
+            text=hovertext,
             colorscale="Viridis",
         ),
         layout=layout,
@@ -207,8 +253,36 @@ def heatmap(
         yaxis_title=f"{dim_names[0]} ({arr.shape[0]})",
         title=title,
     )
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
+
+    # Apply custom tick labels if provided
+    if ticks_0 is not None:
+        fig.update_yaxes(
+            tickmode='array',
+            tickvals=list(range(len(ticks_0))),
+            ticktext=ticks_0,
+            tickangle=0,
+            automargin=True,
+        )
+    else:
+        fig.update_yaxes(showticklabels=False)
+
+    if ticks_1 is not None:
+        fig.update_xaxes(
+            tickmode='array',
+            tickvals=list(range(len(ticks_1))),
+            ticktext=ticks_1,
+            tickangle=-45,
+            automargin=True
+        )
+    else:
+        fig.update_xaxes(showticklabels=False)
+    
+    # Set height and width if provided
+    if height is not None:
+        fig.update_layout(height=height)
+    if width is not None:
+        fig.update_layout(width=width)
+
 
     return fig
 
